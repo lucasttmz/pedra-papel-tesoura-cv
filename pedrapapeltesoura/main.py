@@ -6,7 +6,7 @@ from visualizacao import Janela
 
 
 def looping_principal():
-    jogo = Jogo(Janela())
+    jogo = Jogo(Janela(), 2)
 
     while True:
         # Frame temporário (todo branco)
