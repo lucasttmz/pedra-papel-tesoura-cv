@@ -1,4 +1,6 @@
-from modelos import Escolha, Estado, Resultado
+from abc import ABC, abstractmethod
+
+from constantes import Escolha, Resultado
 from visualizacao import Render
 
 class Jogo:
@@ -6,91 +8,97 @@ class Jogo:
     RODADAS = 3
 
     def __init__(self, view: Render) -> None:
-        self.view = view
-        self.estado: Estado = Estado.NAO_INICIADO
-        self.resultado: Resultado | None = None
+        self.estado_atual: Estado = EstadoNaoIniciado()
+        self.view: Render = view
+        self.resultado: Resultado = Resultado.EMPATE
         self.movimento_jogador1: Escolha | None = None
         self.movimento_jogador2: Escolha | None = None
         self.pontuacao_jogador1 = 0
         self.pontuacao_jogador2 = 0
         self.rodada_atual = 1
-
-    def iniciar_jogo(self) -> None:
-        if self.estado != Estado.NAO_INICIADO:
-            raise ValueError(f"Impossível iniciar o jogo no estado atual {self.estado}")
-        
         self.tempo_restante = Jogo.CONTAGEM_MAXIMA
-        self.estado = Estado.CONTAGEM_REGRESSIVA
+        self.encerrado = False
 
-    def atualizar_contagem_regressiva(self) -> None:
-        if self.estado != Estado.CONTAGEM_REGRESSIVA:
-            raise ValueError(f"Impossível atualizar contagem no estado atual {self.estado}")
-        
-        if self.tempo_restante > 0:
-            self.view.atualizar_contador(self.tempo_restante)
-            self.tempo_restante -= 1
+    def atualizar_jogo(self):
+        self.estado_atual.proximo_estado(self)
+
+
+class Estado(ABC):
+    @abstractmethod
+    def proximo_estado(self, jogo: Jogo):
+        pass
+
+
+class EstadoNaoIniciado(Estado):
+    def proximo_estado(self, jogo: Jogo):
+        jogo.estado_atual = EstadoContagemRegressiva()
+
+
+class EstadoContagemRegressiva(Estado):
+    def proximo_estado(self, jogo: Jogo):
+        if jogo.tempo_restante > 0:
+            jogo.view.atualizar_contador(jogo.tempo_restante)
+            jogo.tempo_restante -= 1
         else:
-            self.estado = Estado.PROCESSANDO_MOVIMENTO
+            jogo.estado_atual = EstadoProcessandoMovimento()
 
-    def processar_movimentos(self) -> None:
-        if self.estado != Estado.PROCESSANDO_MOVIMENTO:
-            raise ValueError(f"Impossível processar movimentos no estado atual {self.estado}")
 
-        self.movimento_jogador1, self.movimento_jogador2 = self.view.ler_movimento()
-        self.estado = Estado.EXIBINDO_MOVIMENTOS
+class EstadoProcessandoMovimento(Estado):
+    def proximo_estado(self, jogo: Jogo):
+        jogo.movimento_jogador1, jogo.movimento_jogador2 = jogo.view.ler_movimento()
+        jogo.estado_atual = EstadoExibindoMovimentos()
 
-    def verificar_vencedor(self) -> None:
-        if self.estado != Estado.VERIFICANDO_VENCEDOR:
-            raise ValueError(f"Impossível verificar vencedor no estado atual {self.estado}")
-        
+
+class EstadoExibindoMovimentos(Estado):
+    def proximo_estado(self, jogo: Jogo):
+        jogo.view.mostrar_movimentos(jogo.movimento_jogador1, jogo.movimento_jogador2)
+        jogo.estado_atual = EstadoVerificandoVencedor()
+
+
+class EstadoVerificandoVencedor(Estado):
+    def proximo_estado(self, jogo: Jogo):
+        # Determina quem venceu
         escolhas = list(Escolha)
-        indice_jogador1 = escolhas.index(self.movimento_jogador1) #type: ignore
-        indice_jogador2 = escolhas.index(self.movimento_jogador2) #type: ignore
+        indice_jogador1 = escolhas.index(jogo.movimento_jogador1) #type: ignore
+        indice_jogador2 = escolhas.index(jogo.movimento_jogador2) #type: ignore
         resultado = (indice_jogador1 - indice_jogador2) % 3
 
-        self.resultado = Resultado(resultado)
-        if self.resultado == Resultado.JOGADOR1:
-            self.pontuacao_jogador1 += 1
-        elif self.resultado == Resultado.JOGADOR2:
-            self.pontuacao_jogador2 += 1
-        
-        self.estado = Estado.EXIBINDO_RESULTADO
+        # Aumenta a pontuação
+        jogo.resultado = Resultado(resultado)
+        if jogo.resultado == Resultado.JOGADOR1:
+            jogo.pontuacao_jogador1 += 1
+        elif jogo.resultado == Resultado.JOGADOR2:
+            jogo.pontuacao_jogador2 += 1
 
-    def exibir_movimentos_detectados(self):
-        if self.estado != Estado.EXIBINDO_MOVIMENTOS:
-            raise ValueError(f"Impossível exibir movimentos no estado atual {self.estado}")
-        
-        self.view.mostrar_movimentos(self.movimento_jogador1, self.movimento_jogador2)
-        self.estado = Estado.VERIFICANDO_VENCEDOR
+        jogo.estado_atual = EstadoExibindoResultado()
 
-    def exibir_resultado_rodada(self):
-        if self.estado != Estado.EXIBINDO_RESULTADO or self.resultado is None:
-            raise ValueError(f"Impossível exibir resultado no estado atual {self.estado}")
-    
-        movimentos = [None, self.movimento_jogador1, self.movimento_jogador2]
-        movimento_vencedor = movimentos[self.resultado]
-        self.view.mostrar_resultado(self.resultado, movimento_vencedor)
-        self.estado = Estado.AGUARDANDO_PROXIMA_RODADA
 
-    def proxima_rodada(self):
-        if self.estado != Estado.AGUARDANDO_PROXIMA_RODADA:
-            raise ValueError(f"Impossível exibir resultado da rodada no estado atual {self.estado}")
-        
-        self.rodada_atual += 1
-        if self.rodada_atual <= Jogo.RODADAS:
-            self.estado = Estado.CONTAGEM_REGRESSIVA
+class EstadoExibindoResultado(Estado):
+    def proximo_estado(self, jogo: Jogo):
+        movimentos = [None, jogo.movimento_jogador1, jogo.movimento_jogador2]
+        movimento_vencedor = movimentos[jogo.resultado] 
+        jogo.view.mostrar_resultado(jogo.resultado, movimento_vencedor)
+        jogo.estado_atual = EstadoAguardandoProximaRodada()
+
+
+class EstadoAguardandoProximaRodada(Estado):
+    def proximo_estado(self, jogo: Jogo):
+        jogo.rodada_atual += 1
+        if jogo.rodada_atual <= Jogo.RODADAS:
+            jogo.tempo_restante = Jogo.CONTAGEM_MAXIMA
+            jogo.estado_atual = EstadoContagemRegressiva()
         else:
-            if self.pontuacao_jogador1 == self.pontuacao_jogador2:
-                self.resultado = Resultado.EMPATE
-            elif self.pontuacao_jogador1 > self.pontuacao_jogador2:
-                self.resultado = Resultado.JOGADOR1
+            if jogo.pontuacao_jogador1 == jogo.pontuacao_jogador2:
+                jogo.resultado = Resultado.EMPATE
+            elif jogo.pontuacao_jogador1 > jogo.pontuacao_jogador2:
+                jogo.resultado = Resultado.JOGADOR1
             else:
-                self.resultado = Resultado.JOGADOR2
+                jogo.resultado = Resultado.JOGADOR2
     
-            self.estado = Estado.ENCERRADO
+            jogo.estado_atual = EstadoEncerrado()
 
-    def exibir_resultado_final(self):
-        if self.estado != Estado.ENCERRADO or self.resultado is None:
-            raise ValueError(f"Impossível exibir resultado final no estado atual {self.estado}")
-        
-        self.view.mostrar_resultado_final(self.resultado, self.pontuacao_jogador1, self.pontuacao_jogador2)
+
+class EstadoEncerrado(Estado):
+    def proximo_estado(self, jogo: Jogo):
+        jogo.encerrado = True
+        jogo.view.mostrar_resultado_final(jogo.resultado, jogo.pontuacao_jogador1, jogo.pontuacao_jogador2)

@@ -1,6 +1,6 @@
 import time
 
-from modelos import Escolha, Resultado
+from constantes import Escolha, Resultado
 
 
 class Render:
@@ -41,9 +41,9 @@ class RenderTemporario(Render):
 
     def mostrar_resultado(self, resultado: Resultado, escolha: Escolha | None):
         if resultado == Resultado.EMPATE:
-            print(f"Empate!")
+            print(f"Rodada Empatada!")
         else:
-            print(f"Jogador {resultado} venceu utilizando {escolha}")
+            print(f"Jogador {resultado} venceu a rodada utilizando {escolha}")
         time.sleep(self.sleep_resultado)
 
     def mostrar_resultado_final(self, resultado: Resultado, pontos_j1: int, pontos_j2: int) -> None: 
