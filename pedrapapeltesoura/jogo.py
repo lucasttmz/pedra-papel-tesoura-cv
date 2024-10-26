@@ -40,7 +40,7 @@ class EstadoNaoIniciado(Estado):
         Não Iniciado -> Contagem Regressiva
     """
     def atualizar(self, jogo: Jogo, frame):
-        jogo.estado_atual = EstadoContagemRegressiva()
+        jogo.alterar_estado(EstadoContagemRegressiva())
 
 
 class EstadoContagemRegressiva(Estado):
