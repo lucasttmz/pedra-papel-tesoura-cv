@@ -85,9 +85,16 @@ class EstadoVerificandoVencedor(Estado):
     def atualizar(self, jogo: Jogo, frame):
         # Determina quem venceu
         escolhas = list(Escolha)
-        indice_jogador1 = escolhas.index(jogo.movimento_jogador1) #type: ignore
-        indice_jogador2 = escolhas.index(jogo.movimento_jogador2) #type: ignore
-        resultado = (indice_jogador1 - indice_jogador2) % 3
+        if jogo.movimento_jogador1 is None and jogo.movimento_jogador2:
+            resultado = Resultado.JOGADOR2
+        elif jogo.movimento_jogador2 is None and jogo.movimento_jogador1:
+            resultado = Resultado.JOGADOR1
+        elif jogo.movimento_jogador1 is None and jogo.movimento_jogador2 is None:
+            resultado = Resultado.EMPATE
+        else:
+            indice_jogador1 = escolhas.index(jogo.movimento_jogador1) #type: ignore
+            indice_jogador2 = escolhas.index(jogo.movimento_jogador2) #type: ignore
+            resultado = (indice_jogador1 - indice_jogador2) % 3
 
         # Aumenta a pontuação
         jogo.resultado = Resultado(resultado)
