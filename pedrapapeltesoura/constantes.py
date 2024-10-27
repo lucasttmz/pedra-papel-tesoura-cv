@@ -11,3 +11,8 @@ class Resultado(IntEnum):
     EMPATE = 0
     JOGADOR1 = 1
     JOGADOR2 = 2
+
+
+class Jogadores(IntEnum):
+    JOGADOR1 = 1
+    JOGADOR2 = 2
