@@ -1,20 +1,21 @@
 import cv2
-import numpy as np
 
 from jogo import Jogo
 from visualizacao import Janela
 
 
 def looping_principal():
-    jogo = Jogo(Janela(), 2)
+    jogo = Jogo(Janela((1280, 720)), rodadas=3)
+    webcam = cv2.VideoCapture(0)
 
     while True:
-        # Frame temporário (todo branco)
-        frame = np.ones((400, 600, 3), dtype=np.uint8) * 255 
+        sucesso, frame = webcam.read()
+        if not sucesso:
+            break
 
         if not jogo.encerrado:
             jogo.atualizar_jogo(frame)
-        else:
+        elif cv2.waitKey(0):
             break
 
     cv2.destroyAllWindows()
