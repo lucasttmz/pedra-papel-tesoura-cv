@@ -5,6 +5,7 @@ from visualizacao import Janela
 
 
 class Jogo:
+    # Valores padrões
     CONTAGEM_MAXIMA = 3
     TOTAL_RODADAS = 1
 
@@ -50,6 +51,7 @@ class EstadoContagemRegressiva(Estado):
         Contagem Regressiva -> Processando Movimento
     """
     def atualizar(self, jogo: Jogo, frame):
+        # Enquanto não atingir 0, continua subtraindo a contagem
         if jogo.tempo_restante > 0:
             jogo.view.atualizar_contador(jogo.tempo_restante, frame)
             jogo.tempo_restante -= 1
@@ -63,6 +65,7 @@ class EstadoProcessandoMovimento(Estado):
         Processando Movimento -> Exibindo Movimentos
     """
     def atualizar(self, jogo: Jogo, frame):
+        # Lé os gestos dos jogadores
         jogo.movimento_jogador1, jogo.movimento_jogador2 = jogo.view.ler_movimento(frame)
         jogo.alterar_estado(EstadoExibindoMovimentos())
 
@@ -73,6 +76,7 @@ class EstadoExibindoMovimentos(Estado):
         Exibindo Movimentos -> Verificando Vencedor
     """
     def atualizar(self, jogo: Jogo, frame):
+        # Mostra na tela o que foi lido
         jogo.view.mostrar_movimentos(jogo.movimento_jogador1, jogo.movimento_jogador2, frame)
         jogo.alterar_estado(EstadoVerificandoVencedor())
 
@@ -112,6 +116,7 @@ class EstadoExibindoResultado(Estado):
         Exibindo Resultado -> Aguardando Próxima Rodada
     """
     def atualizar(self, jogo: Jogo, frame):
+        # Mostra o resultado da rodada
         movimentos = [None, jogo.movimento_jogador1, jogo.movimento_jogador2]
         movimento_vencedor = movimentos[jogo.resultado] 
         jogo.view.mostrar_resultado(jogo.resultado, movimento_vencedor, frame)
@@ -125,11 +130,13 @@ class EstadoAguardandoProximaRodada(Estado):
         Aguardando Próxima Rodada -> Encerrado
     """
     def atualizar(self, jogo: Jogo, frame):
+        # Checa se o jogo deve terminar
         jogo.rodada_atual += 1
         if jogo.rodada_atual <= jogo.rodadas:
             jogo.tempo_restante = Jogo.CONTAGEM_MAXIMA
             jogo.alterar_estado(EstadoContagemRegressiva())
         else:
+            # Checa o vencedor
             if jogo.pontuacao_jogador1 == jogo.pontuacao_jogador2:
                 jogo.resultado = Resultado.EMPATE
             elif jogo.pontuacao_jogador1 > jogo.pontuacao_jogador2:
@@ -146,5 +153,6 @@ class EstadoEncerrado(Estado):
         ---
     """
     def atualizar(self, jogo: Jogo, frame):
+        # Mostra qm venceu e termina o jogo
         jogo.encerrado = True
         jogo.view.mostrar_resultado_final(jogo.resultado, jogo.pontuacao_jogador1, jogo.pontuacao_jogador2, frame)

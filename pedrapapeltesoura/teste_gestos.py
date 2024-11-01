@@ -1,12 +1,16 @@
+"""
+Script para testar o reconhecimento das mãos
+"""
+
 import cv2
 import mediapipe as mp
 
 from reconhecimento import reconhecer_gesto
+from constantes import Jogadores
 
-mp_maos = mp.solutions.hands # type: ignore
-desenho = mp.solutions.drawing_utils  #type: ignore
+mp_maos = mp.solutions.hands
+desenho = mp.solutions.drawing_utils
 maos = mp_maos.Hands()
-
 
 webcam = cv2.VideoCapture(0)
 while True:
@@ -16,15 +20,17 @@ while True:
 
     # processa as maos
     resultado = maos.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-
     altura, largura, _ = frame.shape
     
     if resultado.multi_hand_landmarks:
         for mao in resultado.multi_hand_landmarks:
             
-            texto = str(reconhecer_gesto(mao.landmark))
+            reconhecido = reconhecer_gesto(mao.landmark)
+            texto = str(reconhecido)
 
             posicao_x = int(mao.landmark[mp_maos.HandLandmark.MIDDLE_FINGER_MCP].x * largura)
+            if reconhecido and reconhecido[1] == Jogadores.JOGADOR2:
+                posicao_x -= 300
             posicao_y = int(mao.landmark[mp_maos.HandLandmark.MIDDLE_FINGER_MCP].y * altura)
 
             cv2.putText(
