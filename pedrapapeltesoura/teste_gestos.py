@@ -22,12 +22,14 @@ while True:
     resultado = maos.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     altura, largura, _ = frame.shape
     
+    # se encontrou mãos
     if resultado.multi_hand_landmarks:
+        # para cada mão
         for mao in resultado.multi_hand_landmarks:
-            
             reconhecido = reconhecer_gesto(mao.landmark)
             texto = str(reconhecido)
 
+            # ajusta posição do texto
             posicao_x = int(mao.landmark[mp_maos.HandLandmark.MIDDLE_FINGER_MCP].x * largura)
             if reconhecido and reconhecido[1] == Jogadores.JOGADOR2:
                 posicao_x -= 300
@@ -42,7 +44,7 @@ while True:
 
     cv2.imshow('Pedra, Papel e Tesoura', frame)
     
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 webcam.release()
