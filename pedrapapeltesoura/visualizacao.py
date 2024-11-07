@@ -1,3 +1,7 @@
+"""
+Lógica de visualização (desenhar janela, etc)
+"""
+
 import cv2
 import mediapipe as mp
 
@@ -10,7 +14,7 @@ maos = mp_maos.Hands()
 
 
 class Janela:
-    tela_fundo = cv2.imread("ui/ui.jpg") # Imagem de fundo da janela
+    tela_fundo = cv2.imread("img/fundo.jpg") # Imagem de fundo da janela
 
     def __init__(self, tamanho: tuple[int, int], contador: int = 1, movimentos: int = 3, resultado: int = 3) -> None:
         self.tamanho = tamanho

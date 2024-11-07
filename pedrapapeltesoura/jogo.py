@@ -1,3 +1,8 @@
+"""
+Contém a lógica do jogo
+Para jogar, iniciar a aplicação pelo arquivo main.py
+"""
+
 from abc import ABC, abstractmethod
 
 from constantes import Escolha, Resultado

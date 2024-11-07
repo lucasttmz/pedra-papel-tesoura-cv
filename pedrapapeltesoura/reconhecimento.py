@@ -1,3 +1,7 @@
+"""
+Lógica de reconhecimento das mãos
+"""
+
 import mediapipe as mp
 
 from constantes import Escolha, Jogadores

@@ -1,3 +1,7 @@
+"""
+Ponto de entrada da aplicação
+"""
+
 import cv2
 
 from jogo import Jogo

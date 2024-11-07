@@ -1,5 +1,6 @@
 """
 Script para testar o reconhecimento das mãos
+Para jogar o jogo, iniciar a aplicação pelo arquivo main.py
 """
 
 import cv2
